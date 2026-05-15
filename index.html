@@ -339,6 +339,39 @@ document.addEventListener('click', e => {
   if (e.target.classList.contains('filter-btn')) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
+    const filter = e.target.dataset.filter;
+    const sections = document.querySelectorAll('.table-wrap, h2');
+    sections.forEach(el => el.style.display = '');
+    if (filter === 'this-week') {
+      sections.forEach(el => {
+        const txt = el.textContent;
+        if (!txt.includes('This Week') && !txt.includes('Scheduled (May') && !txt.includes('Recently Priced')) {
+          el.style.display = 'none';
+        }
+      });
+    } else if (filter === 'next-month') {
+      sections.forEach(el => {
+        const txt = el.textContent;
+        if (!txt.includes('June')) { el.style.display = 'none'; }
+      });
+    } else if (filter === 'q3') {
+      sections.forEach(el => {
+        const txt = el.textContent;
+        if (!txt.includes('July') && !txt.includes('August') && !txt.includes('September') && !txt.includes('Q3')) {
+          el.style.display = 'none';
+        }
+      });
+    } else if (filter === 'filed') {
+      sections.forEach(el => {
+        const txt = el.textContent;
+        if (!txt.includes('Filed') && !txt.includes('Awaiting')) { el.style.display = 'none'; }
+      });
+    } else if (filter === 'recent') {
+      sections.forEach(el => {
+        const txt = el.textContent;
+        if (!txt.includes('Recently Priced') && !txt.includes('This Week')) { el.style.display = 'none'; }
+      });
+    }
   }
 });
 </script>
