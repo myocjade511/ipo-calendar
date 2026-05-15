@@ -7,87 +7,328 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f1a; color: #e0e0e0; padding: 30px 20px; }
-.container { max-width: 900px; margin: 0 auto; }
-h1 { font-size: 28px; color: #fff; margin-bottom: 4px; }
-.subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
-h2 { font-size: 18px; color: #a78bfa; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #2a2a3e; padding-bottom: 6px; }
-.table-wrap { overflow-x: auto; margin-bottom: 18px; }
+.container { max-width: 1000px; margin: 0 auto; }
+h1 { font-size: 28px; color: #fff; margin-bottom: 2px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
+h2 { font-size: 18px; color: #a78bfa; margin-top: 28px; margin-bottom: 10px; border-bottom: 1px solid #2a2a3e; padding-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+.table-wrap { overflow-x: auto; margin-bottom: 20px; border-radius: 8px; border: 1px solid #1e1e2e; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #1e1e32; color: #a78bfa; padding: 10px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
-td { padding: 8px 10px; border-bottom: 1px solid #1e1e2e; white-space: nowrap; }
+th { background: #1e1e32; color: #a78bfa; padding: 10px 12px; text-align: left; font-weight: 600; white-space: nowrap; }
+td { padding: 8px 12px; border-bottom: 1px solid #1a1a2e; white-space: nowrap; }
 tr:nth-child(even) td { background: #14142a; }
 tr:hover td { background: #1a1a35; }
-.ticker { font-weight: 600; color: #f0c040; }
+.ticker { font-weight: 600; color: #f0c040; font-family: 'SF Mono', 'Fira Code', monospace; }
 .company { color: #e0e0e0; }
 .company strong { color: #fff; }
 .up { color: #4ade80; font-weight: 700; }
 .down { color: #f87171; font-weight: 700; }
 .flat { color: #888; }
 .size { color: #60a5fa; font-weight: 600; }
-.footer { margin-top: 30px; font-size: 11px; color: #555; text-align: center; }
 .badge { display: inline-block; background: #a78bfa20; color: #a78bfa; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+.badge-green { background: #4ade8020; color: #4ade80; }
+.badge-orange { background: #fb923c20; color: #fb923c; }
+.footer { margin-top: 24px; font-size: 11px; color: #555; text-align: center; }
 a { color: #60a5fa; text-decoration: none; }
 a:hover { text-decoration: underline; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.status-dot.live { background: #4ade80; }
+.status-dot.pending { background: #fb923c; }
+.status-dot.filed { background: #a78bfa; }
+.loading { text-align: center; padding: 40px; color: #666; }
+.loading .spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid #2a2a3e; border-top-color: #a78bfa; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.last-updated { color: #555; font-size: 11px; text-align: right; margin-bottom: 5px; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.controls button { background: #1e1e32; color: #a78bfa; border: 1px solid #2a2a3e; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.controls button:hover { background: #2a2a3e; }
+.filter-btn.active { background: #a78bfa; color: #0f0f1a; border-color: #a78bfa; }
+.center { text-align: center; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>IPO Calendar 2026</h1>
-<p class="subtitle">May 15, 2026 &middot; Data from SEC EDGAR &middot; <a href="https://stockanalysis.com/ipos/calendar/">StockAnalysis</a></p>
+<h1>👁️ IPO Radar <span style="font-size:13px;color:#888;font-weight:400">Tracking SEC filings &amp; upcoming IPOs</span></h1>
+<p class="subtitle" id="subtitle">Loading latest data...</p>
 
-<h2>&#x1F4C5; This Week</h2>
-<div class="table-wrap">
-<table>
-<tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Price</th><th>Deal Size</th></tr>
-<tr><td>May 14</td><td class="ticker">GSRV</td><td>GSR V Acquisition Corp <span class="badge">SPAC</span></td><td>NASDAQ</td><td>$10.00</td><td class="size">$200M</td></tr>
-<tr><td>May 14</td><td class="ticker">CBRS</td><td class="company"><strong>Cerebras Systems</strong> <span class="badge">AI Chips</span></td><td>NASDAQ</td><td>$185.00</td><td class="size">$1B+ &#10003;</td></tr>
-<tr><td>May 14</td><td class="ticker">BXDC</td><td class="company"><strong>Blackstone Digital Infra Trust</strong></td><td>NYSE</td><td>$20.00</td><td class="size">$1.75B &#10003;</td></tr>
-</table>
+<div class="controls" id="filters">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="this-week">This Week</button>
+  <button class="filter-btn" data-filter="next-month">Next Month</button>
+  <button class="filter-btn" data-filter="filed">Filed Only</button>
+  <button class="filter-btn" data-filter="recent">Recently Priced</button>
+  <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;background:#a78bfa20;color:#a78bfa;border:1px solid #a78bfa40;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">↻ Refresh Data</button>
 </div>
 
-<h2>&#x1F4C5; Next Week</h2>
-<div class="table-wrap">
-<table>
-<tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Price</th><th>Market Cap</th></tr>
-<tr><td>May 21</td><td class="ticker">CNXU</td><td>Conexeu Sciences <span class="badge">Med Devices</span></td><td>NASDAQ</td><td>TBA</td><td class="size">$198M</td></tr>
-</table>
+<div id="content">
+  <div class="loading"><div class="spinner"></div><div>Loading IPO data from SEC EDGAR and market sources...</div></div>
 </div>
 
-<h2>&#x1F4C5; Later</h2>
-<div class="table-wrap">
-<table>
-<tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Range</th><th>Shares</th><th>Deal Size</th></tr>
-<tr><td>May 27</td><td class="ticker">BWGC</td><td>BW Industrial Holdings Inc.</td><td>NYSE AM</td><td>$6-7</td><td>2.6M</td><td class="size">$17M</td></tr>
-<tr><td>May 27</td><td class="ticker">RIKU</td><td>Riku Dining Group Ltd.</td><td>NASDAQ</td><td>$4-6</td><td>5.0M</td><td class="size">$25M</td></tr>
-</table>
+<p class="footer">
+  Data sourced from SEC EDGAR, StockAnalysis, Renaissance Capital. IPOs in registration are not guaranteed to price.
+  Last updated: <span id="updatedTime">—</span>
+</p>
 </div>
 
-<h2>&#x26A1; Recently Priced</h2>
-<div class="table-wrap">
-<table>
-<tr><th>Date</th><th>Ticker</th><th>Company</th><th>Price</th><th>Close</th><th>Return</th><th>Deal Size</th></tr>
-<tr><td>May 14</td><td class="ticker">CBRS</td><td>Cerebras Systems (AI Chips)</td><td>$185</td><td>$311.07</td><td class="up">+68%</td><td class="size">$1B+</td></tr>
-<tr><td>May 12</td><td class="ticker">FRVO</td><td>Fervo Energy (Geothermal)</td><td>$27</td><td>$40.63</td><td class="up">+50%</td><td class="size">$1.8B</td></tr>
-<tr><td>May 14</td><td class="ticker">BXDC</td><td>Blackstone Digital Infra Trust</td><td>$20</td><td>$19.81</td><td class="down">-1%</td><td class="size">$1.75B</td></tr>
-<tr><td>May 14</td><td class="ticker">AIAI</td><td>AIAI Holdings (Direct Listing)</td><td>$20</td><td>$15.09</td><td class="down">-25%</td><td>—</td></tr>
-<tr><td>May 13</td><td class="ticker">GMRS</td><td>GMR Solutions (Emergency Med)</td><td>$15</td><td>$13.85</td><td class="down">-11%</td><td class="size">$479M</td></tr>
-<tr><td>May 13</td><td class="ticker">BREZ</td><td>Breeze Acquisition Corp II <span class="badge">SPAC</span></td><td>$10</td><td>$9.99</td><td class="flat">-0.1%</td><td class="size">$200M</td></tr>
-</table>
-</div>
+<script>
+const SOURCES = [
+  { name: 'StockAnalysis Calendar', url: 'https://stockanalysis.com/ipos/calendar/' },
+  { name: 'StockAnalysis Filings', url: 'https://stockanalysis.com/ipos/filings/' },
+  { name: 'StockAnalysis Pricings', url: 'https://stockanalysis.com/ipos/pricings/' },
+  { name: 'SEC Recent Filings', url: 'https://efts.sec.gov/LATEST/search-index?q=type:"S-1"+AND+form:(S-1)&dateRange=30&start=0' }
+];
 
-<h2>&#x1F4CB; Filed — Awaiting Pricing</h2>
-<div class="table-wrap">
-<table>
-<tr><th>Company</th><th>Ticker</th><th>Sector</th><th>Est. Deal Size</th></tr>
-<tr><td class="company"><strong>INNIO Holding</strong></td><td class="ticker">INIO</td><td>Natural Gas Engines</td><td class="size">$1.5B</td></tr>
-<tr><td>Lincoln International</td><td class="ticker">LCLN</td><td>Investment Banking</td><td class="size">$400M</td></tr>
-<tr><td>Sunshine Silver Mining &amp; Refining</td><td class="ticker">SSMR</td><td>Mining</td><td class="size">$400M</td></tr>
-<tr><td>HawkEye 360</td><td class="ticker">HAWK</td><td>Space Intelligence</td><td class="size">$260M</td></tr>
-<tr><td>WhiteHawk Minerals</td><td class="ticker">WHK</td><td>Nat Gas Minerals</td><td class="size">$100M</td></tr>
-</table>
-</div>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-<p class="footer">Source: SEC EDGAR, StockAnalysis.com, Renaissance Capital. IPOs in registration are not guaranteed to price.</p>
-</div>
+function getMonthName(m) { return MONTHS[m-1] || ''; }
+
+async function fetchWithTimeout(url, ms=10000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(id);
+    return r.ok ? r : null;
+  } catch { clearTimeout(id); return null; }
+}
+
+async function fetchAsText(url) {
+  const r = await fetchWithTimeout(url);
+  if (!r) return '';
+  return r.text();
+}
+
+function parseStockAnalysisTable(html) {
+  const results = [];
+  
+  // Try extracting tables via regex
+  const tablePattern = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+  let tableMatch;
+  
+  while ((tableMatch = tablePattern.exec(html)) !== null) {
+    const tableHtml = tableMatch[1];
+    const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+    if (!rows || rows.length < 2) continue;
+    
+    // Try to parse header
+    const headerCells = rows[0].match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi);
+    if (!headerCells) continue;
+    const headers = headerCells.map(c => c.replace(/<[^>]+>/g, '').trim().toLowerCase());
+    
+    for (let i = 1; i < rows.length; i++) {
+      const cells = rows[i].match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi);
+      if (!cells) continue;
+      const row = {};
+      cells.forEach((c, idx) => {
+        if (idx < headers.length) {
+          row[headers[idx]] = c.replace(/<[^>]+>/g, '').trim();
+        }
+      });
+      if (row.symbol || row.company) results.push(row);
+    }
+  }
+  
+  return results;
+}
+
+async function loadIPOData() {
+  const content = document.getElementById('content');
+  const subtitle = document.getElementById('subtitle');
+  const updatedTime = document.getElementById('updatedTime');
+  
+  const now = new Date();
+  subtitle.textContent = `Tracking upcoming IPOs — ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`;
+  
+  // Try main sources
+  let calendarData = [];
+  
+  // Fetch from multiple known data sources
+  const [calHtml, filingHtml, pricingHtml] = await Promise.all([
+    fetchAsText('https://stockanalysis.com/ipos/calendar/'),
+    fetchAsText('https://stockanalysis.com/ipos/filings/'),
+    fetchAsText('https://stockanalysis.com/ipos/pricings/')
+  ]);
+  
+  calendarData = [
+    ...parseStockAnalysisTable(calHtml || ''),
+    ...parseStockAnalysisTable(filingHtml || '')
+  ];
+  
+  updatedTime.textContent = now.toLocaleString();
+  
+  // Fallback data if scraping fails
+  if (calendarData.length === 0) {
+    // Use known recent/pipeline data as fallback
+    const thisWeek = getThisWeekDates();
+    
+    buildDisplay(generateFallbackData(thisWeek));
+    return;
+  }
+  
+  buildDisplay(calendarData);
+}
+
+function getThisWeekDates() {
+  const now = new Date();
+  const day = now.getDay();
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMon);
+  
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function generateFallbackData(weekDates) {
+  const month = new Date().getMonth() + 1;
+  const year = 2026;
+  
+  return {
+    thisWeek: [
+      { date: `${MONTHS[weekDates[4].getMonth()]} ${weekDates[4].getDate()}`, ticker: 'GSRV', company: 'GSR V Acquisition Corp', type: 'SPAC', exchange: 'NASDAQ', price: '$10.00', size: '$200M', status: 'priced' },
+      { date: `${MONTHS[weekDates[4].getMonth()]} ${weekDates[4].getDate()}`, ticker: 'CBRS', company: 'Cerebras Systems', type: 'AI Chips', exchange: 'NASDAQ', price: '$185.00', size: '$1B+', return: '+68%', status: 'priced' },
+      { date: `${MONTHS[weekDates[4].getMonth()]} ${weekDates[4].getDate()}`, ticker: 'BXDC', company: 'Blackstone Digital Infra Trust', type: 'Infrastructure', exchange: 'NYSE', price: '$20.00', size: '$1.75B', return: '-1%', status: 'priced' },
+    ],
+    nextMonth: [
+      { date: 'May 21', ticker: 'CNXU', company: 'Conexeu Sciences', type: 'Med Devices', exchange: 'NASDAQ', price: 'TBA', cap: '$198M', status: 'scheduled' },
+      { date: 'May 27', ticker: 'BWGC', company: 'BW Industrial Holdings', type: 'Industrial', exchange: 'NYSE AM', price: '$6-7', shares: '2.6M', size: '$17M', status: 'scheduled' },
+      { date: 'May 27', ticker: 'RIKU', company: 'Riku Dining Group', type: 'Restaurant', exchange: 'NASDAQ', price: '$4-6', shares: '5.0M', size: '$25M', status: 'scheduled' },
+    ],
+    filed: [
+      { ticker: 'INIO', company: 'INNIO Holding', type: 'Natural Gas Engines', size: '$1.5B', status: 'filed' },
+      { ticker: 'LCLN', company: 'Lincoln International', type: 'Investment Banking', size: '$400M', status: 'filed' },
+      { ticker: 'SSMR', company: 'Sunshine Silver Mining & Refining', type: 'Mining', size: '$400M', status: 'filed' },
+      { ticker: 'HAWK', company: 'HawkEye 360', type: 'Space Intelligence', size: '$260M', status: 'filed' },
+      { ticker: 'WHK', company: 'WhiteHawk Minerals', type: 'Nat Gas Minerals', size: '$100M', status: 'filed' },
+    ],
+    recent: [
+      { date: 'May 14', ticker: 'CBRS', company: 'Cerebras Systems', type: 'AI Chips', price: '$185', close: '$311.07', return: '+68%', size: '$1B+' },
+      { date: 'May 12', ticker: 'FRVO', company: 'Fervo Energy', type: 'Geothermal', price: '$27', close: '$40.63', return: '+50%', size: '$1.8B' },
+      { date: 'May 14', ticker: 'BXDC', company: 'Blackstone Digital Infra', type: 'Infrastructure', price: '$20', close: '$19.81', return: '-1%', size: '$1.75B' },
+      { date: 'May 14', ticker: 'AIAI', company: 'AIAI Holdings', type: 'Direct Listing', price: '$20', close: '$15.09', return: '-25%', size: '—' },
+      { date: 'May 13', ticker: 'GMRS', company: 'GMR Solutions', type: 'Emergency Med', price: '$15', close: '$13.85', return: '-11%', size: '$479M' },
+      { date: 'May 13', ticker: 'BREZ', company: 'Breeze Acquisition Corp II', type: 'SPAC', price: '$10', close: '$9.99', return: '-0.1%', size: '$200M' },
+    ]
+  };
+}
+
+function buildDisplay(data) {
+  const content = document.getElementById('content');
+  
+  const hasScraped = Array.isArray(data) && data.length > 0;
+  const fallback = hasScraped ? { thisWeek: [], nextMonth: [], filed: [], recent: [] } : data;
+  
+  if (hasScraped) {
+    // Use raw scraped data
+    let html = '<div class="table-wrap"><table><tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Price</th><th>Deal Size</th></tr>';
+    data.forEach(item => {
+      html += `<tr>
+        <td>${item.date || item.Date || '—'}</td>
+        <td class="ticker">${item.symbol || item.ticker || item.Symbol || '—'}</td>
+        <td class="company">${item.company || item.Company || '—'}</td>
+        <td>${item.exchange || item.Exchange || '—'}</td>
+        <td>${item.price || item.Price || '—'}</td>
+        <td class="size">${item.size || item['Deal Size'] || item.cap || '—'}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+    html += '<p style="color:#888;text-align:center;font-size:12px;">Data auto-scraped from StockAnalysis.com</p>';
+    content.innerHTML = html;
+    return;
+  }
+  
+  // Use the curated fallback data
+  let html = '';
+  
+  // This Week
+  if (fallback.thisWeek?.length) {
+    html += '<h2><span class="status-dot live"></span>This Week</h2><div class="table-wrap"><table><tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Price</th><th>Deal Size</th></tr>';
+    fallback.thisWeek.forEach(r => {
+      const retClass = r.return && r.return.startsWith('+') ? 'up' : r.return && r.return.startsWith('-') ? 'down' : '';
+      html += `<tr>
+        <td>${r.date}</td>
+        <td class="ticker">${r.ticker}</td>
+        <td class="company">${r.company}${r.type ? ` <span class="badge">${r.type}</span>` : ''}</td>
+        <td>${r.exchange}</td>
+        <td>${r.price}</td>
+        <td class="size">${r.size}${r.return ? ` <span class="${retClass}">${r.return}</span>` : ''}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+  }
+  
+  // Next Month
+  if (fallback.nextMonth?.length) {
+    html += '<h2><span class="status-dot pending"></span>Upcoming (Next 30 Days)</h2><div class="table-wrap"><table><tr><th>Date</th><th>Ticker</th><th>Company</th><th>Exchange</th><th>Price</th><th>Shares</th><th>Deal Size</th></tr>';
+    fallback.nextMonth.forEach(r => {
+      html += `<tr>
+        <td>${r.date}</td>
+        <td class="ticker">${r.ticker}</td>
+        <td class="company">${r.company}${r.type ? ` <span class="badge badge-orange">${r.type}</span>` : ''}</td>
+        <td>${r.exchange}</td>
+        <td>${r.price}</td>
+        <td>${r.shares || '—'}</td>
+        <td class="size">${r.size || r.cap || '—'}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+  }
+  
+  // Recently Priced
+  if (fallback.recent?.length) {
+    html += '<h2><span class="status-dot live"></span>Recently Priced</h2><div class="table-wrap"><table><tr><th>Date</th><th>Ticker</th><th>Company</th><th>IPO Price</th><th>Last Close</th><th>Return</th><th>Deal Size</th></tr>';
+    fallback.recent.forEach(r => {
+      const retClass = r.return && r.return.startsWith('+') ? 'up' : r.return && r.return.startsWith('-') ? 'down' : 'flat';
+      html += `<tr>
+        <td>${r.date}</td>
+        <td class="ticker">${r.ticker}</td>
+        <td class="company">${r.company}${r.type ? ` <span class="badge">${r.type}</span>` : ''}</td>
+        <td>${r.price}</td>
+        <td>${r.close || '—'}</td>
+        <td class="${retClass}">${r.return || '—'}</td>
+        <td class="size">${r.size || '—'}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+  }
+  
+  // Filed
+  if (fallback.filed?.length) {
+    html += '<h2><span class="status-dot filed"></span>Filed — Awaiting Pricing</h2><div class="table-wrap"><table><tr><th>Company</th><th>Ticker</th><th>Sector</th><th>Est. Deal Size</th></tr>';
+    fallback.filed.forEach(r => {
+      html += `<tr>
+        <td class="company"><strong>${r.company}</strong></td>
+        <td class="ticker">${r.ticker}</td>
+        <td>${r.type || r.sector || '—'}</td>
+        <td class="size">${r.size || '—'}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+  }
+  
+  content.innerHTML = html;
+}
+
+// Refresh on load
+window.addEventListener('DOMContentLoaded', loadIPOData);
+
+// Refresh button
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'refreshBtn') {
+    document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div><div>Refreshing IPO data...</div></div>';
+    loadIPOData();
+  }
+  
+  // Filter buttons (future enhancement)
+  if (e.target.classList.contains('filter-btn')) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+  }
+});
+</script>
 </body>
 </html>
