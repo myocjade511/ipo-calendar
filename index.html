@@ -219,9 +219,9 @@ function generateCalendar() {
   return { cal, todayStr };
 }
 
-function renderSection(title, emoji, dotClass, headers, rows, keyMap) {
+function renderSection(title, emoji, dotClass, headers, rows, keyMap, sectionClass) {
   if (!rows || rows.length === 0) return '';
-  let html = `<h2><span class="status-dot ${dotClass}"></span>${emoji} ${title}</h2><div class="table-wrap"><table><tr>`;
+  let html = `<div class="section ${sectionClass || ''}"><h2><span class="status-dot ${dotClass}"></span>${emoji} ${title}</h2><div class="table-wrap"><table><tr>`;
   headers.forEach(h => { html += `<th>${h}</th>`; });
   html += '</tr>';
   rows.forEach(r => {
@@ -240,7 +240,7 @@ function renderSection(title, emoji, dotClass, headers, rows, keyMap) {
     });
     html += '</tr>';
   });
-  html += '</table></div>';
+  html += '</table></div></div>';
   return html;
 }
 
@@ -250,61 +250,71 @@ function renderCalendar(cal) {
   html += renderSection('This Week (May 12-18)', '📅', 'live',
     ['Date','Ticker','Company','Exchange','Price','Deal Size'],
     cal.mayConfirmed,
-    ['d','t','c','ex','p','sz']
+    ['d','t','c','ex','p','sz'],
+    'filter-this-week filter-recent'
   );
   
   html += renderSection('Scheduled (May 19-31)', '📅', 'pending',
     ['Date','Ticker','Company','Exchange','Price','Shares','Deal Size'],
     cal.mayScheduled,
-    ['d','t','c','ex','p','sh','sz']
+    ['d','t','c','ex','p','sh','sz'],
+    'filter-this-week'
   );
   
   html += renderSection('June 2026', '📅', 'pending',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.june,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-next-month'
   );
   
   html += renderSection('July 2026', '📅', 'projected',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.july,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-q3'
   );
   
   html += renderSection('August 2026', '📅', 'projected',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.august,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-q3'
   );
   
   html += renderSection('September 2026', '📅', 'projected',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.september,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-q3'
   );
   
   html += renderSection('October 2026', '📅', 'projected',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.october,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-q3'
   );
   
   html += renderSection('November 2026', '📅', 'projected',
     ['Date','Ticker','Company','Type','Price','Deal Size'],
     cal.november,
-    ['d','t','c','x','p','sz']
+    ['d','t','c','x','p','sz'],
+    'filter-q3'
   );
   
   html += renderSection('Recently Priced', '⚡', 'live',
     ['Date','Ticker','Company','IPO Price','Close','Return','Deal Size'],
     cal.recent,
-    ['d','t','c','p','cl','ret','sz']
+    ['d','t','c','p','cl','ret','sz'],
+    'filter-recent'
   );
   
   html += renderSection('Filed — Awaiting Pricing', '📋', 'filed',
     ['Company','Ticker','Sector','Est. Size'],
     cal.filed,
-    ['c','t','x','sz']
+    ['c','t','x','sz'],
+    'filter-filed'
   );
   
   return html;
@@ -340,36 +350,13 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
     const filter = e.target.dataset.filter;
-    const sections = document.querySelectorAll('.table-wrap, h2');
-    sections.forEach(el => el.style.display = '');
-    if (filter === 'this-week') {
-      sections.forEach(el => {
-        const txt = el.textContent;
-        if (!txt.includes('This Week') && !txt.includes('Scheduled (May') && !txt.includes('Recently Priced')) {
+    const allSections = document.querySelectorAll('.section');
+    allSections.forEach(el => el.style.display = '');
+    if (filter !== 'all') {
+      allSections.forEach(el => {
+        if (!el.classList.contains('filter-' + filter)) {
           el.style.display = 'none';
         }
-      });
-    } else if (filter === 'next-month') {
-      sections.forEach(el => {
-        const txt = el.textContent;
-        if (!txt.includes('June')) { el.style.display = 'none'; }
-      });
-    } else if (filter === 'q3') {
-      sections.forEach(el => {
-        const txt = el.textContent;
-        if (!txt.includes('July') && !txt.includes('August') && !txt.includes('September') && !txt.includes('Q3')) {
-          el.style.display = 'none';
-        }
-      });
-    } else if (filter === 'filed') {
-      sections.forEach(el => {
-        const txt = el.textContent;
-        if (!txt.includes('Filed') && !txt.includes('Awaiting')) { el.style.display = 'none'; }
-      });
-    } else if (filter === 'recent') {
-      sections.forEach(el => {
-        const txt = el.textContent;
-        if (!txt.includes('Recently Priced') && !txt.includes('This Week')) { el.style.display = 'none'; }
       });
     }
   }
